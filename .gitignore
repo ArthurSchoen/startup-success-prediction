@@ -1,0 +1,35 @@
+# Secrets
+.env
+*.env
+
+# Data (proprietary sources + too large for git)
+data/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# IDE
+.cursor/
+.claude/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# R
+.Rhistory
+.RData
