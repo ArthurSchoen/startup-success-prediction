@@ -5,6 +5,13 @@ Arthur Schoen | Advisor: Michael A. Cusumano
 
 ---
 
+## TL;DR
+
+- Built an end-to-end ML pipeline predicting which Series A startups raise a Series B, using only public data: 14 sources (SEC filings, patents, web archives, news, GitHub, and more) on 2,993 US startups.
+- Result: cross-validated AUC 0.720 and 91.9% precision in the top 5% of predictions, against a 52.1% base rate.
+- Headline finding: free SEC Form D filings alone carry almost all the signal (AUC 0.693) — most "alternative data" adds surprisingly little.
+- Introduced a citation-verified LLM extraction method that pulls structured facts from archived web pages and programmatically rejects hallucinated outputs.
+
 Can public data predict which startups will raise Series B after Series A?
 
 This thesis builds a machine learning pipeline that integrates **14 public data sources** — SEC filings, patents, archived websites, news coverage, code repositories, and more — into a unified feature set for startup outcome prediction. We introduce a **citation-verified LLM extraction** method that recovers structured facts from archived web pages while programmatically rejecting hallucinated outputs.
