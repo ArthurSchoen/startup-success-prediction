@@ -34,6 +34,17 @@ raw = pd.read_csv("Pipeline/archive/new2k/new2k_04_merged_signals.csv")
 full = full.merge(raw[["Organization_Name","Total Equity Funding Amount (in USD)","Last Funding Type"]], on="Organization_Name", how="left")
 sA_usd = pd.to_numeric(full["seriesA_amount_usd_millions"], errors="coerce").fillna(0) * 1e6
 te = pd.to_numeric(full["Total Equity Funding Amount (in USD)"], errors="coerce").fillna(0)
+
+# CAVEAT, read before quoting any number from this file.
+# This audit runs on `raised_B_plus`, a WIDER label than the one the model is
+# trained on in step 06 (`SeriesB_within_36m`, Series B inside 36 months).
+# Here a company also counts as positive when its total equity funding reached
+# twice the Series A, which catches large extensions and unlabelled rounds.
+# The intent was to stress-test the features against the most generous
+# definition of success. The consequence is that the leakage conclusions below
+# are evidence about this label, not proof about the trained target, and
+# Test E shows exactly why that matters: the 2x rule is easier to trigger on
+# small Series A rounds, so it carries a size bias the trained label does not.
 full["raised_B_plus"] = (full["success_seriesB_plus"].astype(bool) | ((sA_usd > 0) & (te >= 2 * sA_usd))).astype(int)
 
 # Merge OpenAlex (new version)
@@ -114,15 +125,20 @@ def univariate_auc_cv(col):
     for tr_idx, va_idx in skf.split(X, y):
         X_tr, X_va = X.iloc[tr_idx], X.iloc[va_idx]
         y_tr, y_va = y.iloc[tr_idx], y.iloc[va_idx]
-        # Use a simple threshold-based AUC (pass feature values as scores directly)
-        # Take absolute correlation sign into account
+        # No model is fitted: the raw feature value IS the score, which is what
+        # a univariate AUC means. Any monotone model would give the same ranking
+        # and the same AUC, so fitting one would only add a way to overfit.
+        # The only thing learned from the training fold is the sign, so that a
+        # feature that predicts downwards is not reported as worse than random.
         if X_tr[col].corr(y_tr) >= 0:
             scores_va = X_va[col].values
         else:
             scores_va = -X_va[col].values
         try:
             aucs.append(roc_auc_score(y_va, scores_va))
-        except:
+        except ValueError:
+            # A fold can end up with a single class present; AUC is undefined
+            # there, and 0.5 is the neutral value that leaves the mean unbiased.
             aucs.append(0.5)
     coverage = (pd.to_numeric(full_fe[col], errors="coerce").fillna(0) != 0).mean()
     return np.mean(aucs), coverage

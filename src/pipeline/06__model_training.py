@@ -93,7 +93,11 @@ print(f"Train positives: {int(train_df[TARGET].sum())}/{len(train_df)}")
 print(f"Test  positives: {int(test_df[TARGET].sum())}/{len(test_df)}")
 
 # ── Feature selection ─────────────────────────────────────────────────────────
-# Keep numeric features with >= 3 non-zero values in train (minimum signal)
+# A feature needs at least this many non-zero values in TRAIN to be kept. The
+# sparse sources justify it: Wikipedia covers 0.2% of the cohort and OpenAlex
+# 0.9%, so a column can be almost entirely zeros and still be a real signal.
+# The threshold only removes columns that are constant in practice. Computed on
+# train alone, never on test, so the choice cannot see the held-out rows.
 NONZERO_THRESHOLD = 3
 CATEGORICAL_COLS  = ["industry_bucket"]
 
@@ -131,7 +135,9 @@ print(f"  (dropped {excluded_leakage} leakage-risk features, {len(ALL_FEATS) - l
 # ── Prepare X, y ─────────────────────────────────────────────────────────────
 def prepare(df, feature_cols, fit_transformer=None):
     X_raw = df[feature_cols].copy()
-    # Fill NaN with 0 (signal absence — already the correct semantics for all signal cols)
+    # Zero is the right fill here, not a mean or a median: every signal column
+    # counts occurrences (patents, releases, snapshots, mentions), so a missing
+    # value means the company has none, not that the value is unknown.
     for c in usable_numeric:
         if c in X_raw.columns:
             X_raw[c] = X_raw[c].fillna(0)
@@ -148,6 +154,11 @@ preprocessor = ColumnTransformer(transformers=[
     ("cat", OneHotEncoder(handle_unknown="ignore", sparse_output=False), cat_cols),
 ], remainder="drop")
 
+# KNOWN SHORTCUT: the scaler is fit on the whole train set before the CV split
+# below, so each fold's scaling has seen its own validation rows. The clean form
+# is to wrap preprocessor + model in a sklearn Pipeline and hand that to the CV.
+# The effect here is small (four of the six models are trees, which ignore
+# scaling) but the reported CV AUC is very slightly optimistic because of it.
 preprocessor.fit(X_train_raw)
 X_train = preprocessor.transform(X_train_raw)
 X_test  = preprocessor.transform(X_test_raw)
@@ -162,8 +173,13 @@ n_features = X_train.shape[1]
 print(f"Final feature matrix: {X_train.shape}  (after OHE: {n_features} features)")
 
 # ── Model definitions ─────────────────────────────────────────────────────────
-# class_weight='balanced' compensates for class imbalance
-# XGBoost: scale_pos_weight = n_negative / n_positive
+# Depths are deliberately shallow (2 to 3) and regularisation is strong
+# (C=0.1 / C=0.05). With ~3,000 rows and ~120 candidate features, a deeper
+# forest fits the cohort rather than the phenomenon. These values were set by
+# judgement, not by a hyperparameter search: see the README limits section.
+#
+# The weighting below is close to a no-op at a ~50/50 base rate. It is kept so
+# the same script stays correct if the cohort or the target window changes.
 pos_weight = (y_train == 0).sum() / max((y_train == 1).sum(), 1)
 
 MODELS = {
@@ -296,7 +312,9 @@ plt.close(fig)
 print(f"\nSaved: {out}")
 
 # ── Plot 2: Precision-Recall curves ──────────────────────────────────────────
-# PR is more informative than ROC with severe imbalance (10.5% positive rate)
+# The cohort is close to balanced (~50% positive), so PR and ROC say much the
+# same thing here. PR is kept because precision at the top of the ranking is
+# what a screening use case cares about, not because of class imbalance.
 fig, ax = plt.subplots(figsize=(8, 6))
 baseline = y_train.mean()
 ax.axhline(baseline, color="k", ls="--", alpha=0.4, lw=1,

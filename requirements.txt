@@ -1,0 +1,27 @@
+# Python 3.11. Generated from the imports actually used in src/.
+# Versions are lower bounds, not the exact ones the thesis ran on: the results
+# in the README were produced in May 2026 and have not been re-run since.
+
+# Data
+pandas>=2.0
+numpy>=1.24
+python-dateutil>=2.8
+
+# Models (stage 06, 07, 08)
+scikit-learn>=1.3
+xgboost>=2.0
+lightgbm>=4.0
+shap>=0.44
+
+# Figures
+matplotlib>=3.7
+
+# Collection (stages 01 to 04)
+requests>=2.31
+beautifulsoup4>=4.12
+tldextract>=5.0
+tqdm>=4.66
+
+# LLM classification (stage 03) and Wayback extraction (stage 04m)
+openai>=1.30
+google-genai>=1.0
