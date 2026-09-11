@@ -906,6 +906,30 @@ def llm_extract_page_features(full_text: str, company_name: str = "") -> dict | 
         parsed = _json.loads(raw[s:e])
 
         # ── Citation verification ────────────────────────────────────
+        # What this guarantees: the model cannot invent a page. Every fact it
+        # returns must carry a quote that appears verbatim in the text we
+        # fetched, so a fabricated sentence is dropped before it can become a
+        # feature. That is the property the thesis claims and it holds.
+        #
+        # What it does NOT guarantee, and the numbers should be read with this
+        # in mind:
+        #   1. The quote is checked, the value extracted from it is not. For a
+        #      university or an employer we verify the quote and separately
+        #      require a non-empty name, but never that the name appears inside
+        #      the quote. A real sentence with an unrelated label attached
+        #      passes.
+        #   2. min_len=5 is permissive for the booleans below. A five character
+        #      quote such as "ph.d." found anywhere on the page verifies the
+        #      flag, including when it belongs to an advisor rather than a
+        #      founder. The prompt asks for founder attribution; nothing here
+        #      enforces it.
+        #   3. full_text is the fetched pages plus a "Founders: ..." line
+        #      prepended from Crunchbase upstream, so a quote can verify
+        #      against that injected line rather than against the archive.
+        #
+        # Left unchanged on purpose: the published results were produced by
+        # this exact function, so tightening it now would describe a different
+        # experiment than the one the thesis reports.
         text_lower = full_text.lower()
 
         def _quote_verified(quote_str, min_len=5):

@@ -14,7 +14,7 @@ Arthur Schoen | Advisor: Michael A. Cusumano
 
 Can public data predict which startups will raise Series B after Series A?
 
-This thesis builds a machine learning pipeline that integrates **14 public data sources** — SEC filings, patents, archived websites, news coverage, code repositories, and more — into a unified feature set for startup outcome prediction. We introduce a **citation-verified LLM extraction** method that recovers structured facts from archived web pages while programmatically rejecting hallucinated outputs.
+This thesis builds a machine learning pipeline that integrates **14 public data sources** — SEC filings, patents, archived websites, news coverage, code repositories, and more — into a unified feature set for startup outcome prediction. We introduce a **citation-verified LLM extraction** method that recovers structured facts from archived web pages: every fact the model returns must carry a quote that appears verbatim in the fetched page, and anything whose quote cannot be found is discarded before it becomes a feature. The check is on the quote rather than on the inference drawn from it, which is a real limit and is described in the limits section.
 
 ## Key Results
 
@@ -172,6 +172,18 @@ do with their prospects. The diagnostic prints the positive rate by round size a
 stops there. The trained label does not have this problem, which is part of why it
 is the one the results are reported on.
 
+**Citation verification blocks fabrication, not misattribution.** The quote must
+appear verbatim in the fetched page, which is what stops the model inventing a
+source. But the value extracted from that quote is not itself checked against it:
+for a university or an employer the code verifies the quote and separately requires
+a non-empty name, never that the name appears inside the quote. The boolean flags
+accept a quote of five characters, so a "Ph.D." anywhere on an about page can set
+the founder flag even when it belongs to an advisor. The eight Wayback features
+should be read as noisy evidence of a credential, not as a verified fact about a
+founder. Requiring the value to appear inside its own quote, and raising the
+minimum quote length, is a small change that would sharpen this, and it is the one
+I would make before anyone builds on these features.
+
 **Hyperparameters were chosen, not searched.** Shallow trees, strong
 regularisation, 100 to 500 estimators. The reasoning is that roughly 3,000 rows and
 120 candidate features punish depth, and the shallow settings are what kept
@@ -195,6 +207,20 @@ sources that already have coverage would.
 cross-validated predictions, which captures sampling noise but not the variance
 from refitting the models. A proper interval would repeat the whole
 cross-validation across seeds.
+
+**Collection is not reproducible, even from the same inputs.** The LLM calls run at
+temperature 0 but against a floating model alias rather than a dated snapshot, with
+no seed, and the live sources (GDELT, GitHub, USAspending, the Wayback index) return
+different results as time passes. No raw API responses are archived. Two runs of the
+collection stage will not produce the same feature table, so the modelling results
+are reproducible from the saved dataset and not from the internet.
+
+**A failure during collection silently removes a company.** The per-company body in
+stage 01 is wrapped in a catch-all that returns nothing on any error, so a parsing
+failure or a timeout drops that row from the cohort with no log line. The surviving
+2,993 companies are therefore those that never hit an error, which is a selection
+effect I cannot currently quantify. Logging the dropped identifiers would be enough
+to measure it.
 
 **There are no tests, and the pipeline is not idempotent.** Stages read whatever
 CSV they find with a glob and a modification-time sort, which is convenient when
