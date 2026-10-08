@@ -1,0 +1,226 @@
+{
+  "target": "label_B",
+  "n_startups": 2993,
+  "base_rate": 0.5209,
+  "n_features": 34,
+  "split": {
+    "train": 2394,
+    "test": 599
+  },
+  "models_80_20": {
+    "XGBoost": {
+      "cv_auc": 0.72,
+      "cv_pr_auc": 0.738,
+      "test_auc": 0.717,
+      "test_pr_auc": 0.742
+    },
+    "LightGBM": {
+      "cv_auc": 0.719,
+      "cv_pr_auc": 0.734,
+      "test_auc": 0.715,
+      "test_pr_auc": 0.74
+    },
+    "Gradient boosting": {
+      "cv_auc": 0.72,
+      "cv_pr_auc": 0.737,
+      "test_auc": 0.715,
+      "test_pr_auc": 0.742
+    },
+    "Random forest": {
+      "cv_auc": 0.713,
+      "cv_pr_auc": 0.728,
+      "test_auc": 0.712,
+      "test_pr_auc": 0.737
+    },
+    "Logistic regression (L2)": {
+      "cv_auc": 0.699,
+      "cv_pr_auc": 0.704,
+      "test_auc": 0.687,
+      "test_pr_auc": 0.718
+    },
+    "Logistic regression (L1)": {
+      "cv_auc": 0.698,
+      "cv_pr_auc": 0.7,
+      "test_auc": 0.686,
+      "test_pr_auc": 0.72
+    }
+  },
+  "precision_at_test": {
+    "top_5pct": {
+      "precision": 1.0,
+      "k": 29,
+      "hits": 29
+    },
+    "top_10pct": {
+      "precision": 0.847457627118644,
+      "k": 59,
+      "hits": 50
+    },
+    "top_20pct": {
+      "precision": 0.7899159663865546,
+      "k": 119,
+      "hits": 94
+    }
+  },
+  "full_cv_auc": 0.719,
+  "precision_at_full_cv": {
+    "top_1pct": {
+      "precision": 0.9655172413793104,
+      "k": 29,
+      "hits": 28
+    },
+    "top_5pct": {
+      "precision": 0.9194630872483222,
+      "k": 149,
+      "hits": 137
+    },
+    "top_10pct": {
+      "precision": 0.8662207357859532,
+      "k": 299,
+      "hits": 259
+    },
+    "top_20pct": {
+      "precision": 0.7976588628762542,
+      "k": 598,
+      "hits": 477
+    }
+  },
+  "bootstrap_95ci": {
+    "full_cv_auc": [
+      0.7,
+      0.737
+    ],
+    "full_cv_precision_at_5pct": [
+      0.866,
+      0.96
+    ],
+    "note": "Resamples out-of-fold predictions; does not capture refit variance."
+  },
+  "ablation": {
+    "basis": "full-data 5-fold CV, XGBoost, 35 features",
+    "all_sources_auc": 0.719,
+    "source_alone_auc": {
+      "Form D": 0.693,
+      "Crunchbase": 0.591,
+      "Wayback Machine": 0.534,
+      "LLM (deeptech)": 0.561,
+      "Patents": 0.527,
+      "Clinical Trials": 0.513,
+      "Federal Awards": 0.509,
+      "YC Alumni": 0.507,
+      "GDELT News": 0.494,
+      "EDGAR SEC": 0.558,
+      "Hacker News": 0.542,
+      "GitHub": 0.52,
+      "Wikipedia": 0.501,
+      "OpenAlex": 0.504,
+      "Packages": 0.511,
+      "Composites": 0.588
+    },
+    "cumulative": [
+      {
+        "added": "Form D",
+        "auc": 0.693
+      },
+      {
+        "added": "Crunchbase",
+        "auc": 0.709
+      },
+      {
+        "added": "Wayback Machine",
+        "auc": 0.708
+      },
+      {
+        "added": "LLM (deeptech)",
+        "auc": 0.711
+      },
+      {
+        "added": "Patents",
+        "auc": 0.712
+      },
+      {
+        "added": "Clinical Trials",
+        "auc": 0.712
+      },
+      {
+        "added": "Federal Awards",
+        "auc": 0.713
+      },
+      {
+        "added": "YC Alumni",
+        "auc": 0.713
+      },
+      {
+        "added": "GDELT News",
+        "auc": 0.713
+      },
+      {
+        "added": "EDGAR SEC",
+        "auc": 0.712
+      },
+      {
+        "added": "Hacker News",
+        "auc": 0.716
+      },
+      {
+        "added": "GitHub",
+        "auc": 0.717
+      },
+      {
+        "added": "Wikipedia",
+        "auc": 0.717
+      },
+      {
+        "added": "OpenAlex",
+        "auc": 0.716
+      },
+      {
+        "added": "Packages",
+        "auc": 0.717
+      },
+      {
+        "added": "Composites",
+        "auc": 0.719
+      }
+    ],
+    "drop_one_delta": {
+      "Form D": -0.059,
+      "Crunchbase": -0.004,
+      "Wayback Machine": 0.0,
+      "LLM (deeptech)": -0.002,
+      "Patents": 0.0,
+      "Clinical Trials": -0.001,
+      "Federal Awards": -0.001,
+      "YC Alumni": 0.0,
+      "GDELT News": 0.0,
+      "EDGAR SEC": 0.0,
+      "Hacker News": -0.003,
+      "GitHub": 0.0,
+      "Wikipedia": 0.0,
+      "OpenAlex": 0.0,
+      "Packages": 0.0,
+      "Composites": -0.002
+    }
+  },
+  "robustness": {
+    "without_seriesA_amount_auc": 0.704,
+    "seriesA_amount_alone_auc": 0.637,
+    "formd_without_amount_auc": 0.667,
+    "strict_36m_label": {
+      "definition": "label_B and a dated follow-on within 36 months of the Series A",
+      "base_rate": 0.2185,
+      "auc": 0.709
+    },
+    "months_A_to_followon_among_dated_positives": {
+      "median": 35.6,
+      "share_within_36m": 0.504
+    }
+  },
+  "label_sources": {
+    "positives": 1559,
+    "crunchbase_series_b_or_later": 860,
+    "later_formd_filing": 59,
+    "only_equity_or_unknown_series_rules": 647,
+    "note": "The last count covers positives found only by the 'Venture, unknown series' or 'total equity > 2x Series A' rules."
+  }
+}

@@ -3,7 +3,7 @@
 """
 06__model_training.py — Model comparison for Series B prediction (pre-Series A signals)
 
-Target: SeriesB_within_36m (1 = raised Series B or higher within 36 months of Series A)
+Target: label_B (1 = any follow-on round after the Series A, no time window; see README)
 
 Evaluation: 5-fold stratified cross-validation on train set.
 AUC from 5-fold CV provides a reasonable estimate; interpret with bootstrap CIs.
@@ -84,7 +84,7 @@ train_df = pd.read_csv(_train_candidates[0] if _train_candidates else FINAL / "f
 test_df = pd.read_csv(_test_candidates[0] if _test_candidates else FINAL / "final_test.csv")
 feat_cfg = json.loads((_feat_candidates[0] if _feat_candidates else FINAL / "final_feature_columns.json").read_text())
 
-TARGET    = feat_cfg["target"]           # SeriesB_within_36m
+TARGET    = feat_cfg["target"]           # label_B
 ALL_FEATS = feat_cfg["feature_columns"]  # 120 declared features
 
 print(f"Train: {train_df.shape}  |  Test: {test_df.shape}")

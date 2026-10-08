@@ -37,7 +37,7 @@ te = pd.to_numeric(full["Total Equity Funding Amount (in USD)"], errors="coerce"
 
 # CAVEAT, read before quoting any number from this file.
 # This audit runs on `raised_B_plus`, a WIDER label than the one the model is
-# trained on in step 06 (`SeriesB_within_36m`, Series B inside 36 months).
+# trained on in step 06 (`label_B`, any follow-on round, no time window).
 # Here a company also counts as positive when its total equity funding reached
 # twice the Series A, which catches large extensions and unlabelled rounds.
 # The intent was to stress-test the features against the most generous
