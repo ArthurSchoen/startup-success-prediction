@@ -51,15 +51,17 @@ Step 06: Model Training (XGBoost)
 4. Extract the earliest non-amendment filing date as `seriesA_date`
 
 **Company matching:**
-- Jaccard similarity on normalized company names (strip legal suffixes: Inc, LLC, Corp, etc.)
-- Founder name overlap validation (at least 1 founder surname must appear in Form D related persons)
-- Match confidence score = Jaccard score * founder overlap ratio
+- Candidates come from an in-memory inverted token index over the ~474K Form D issuers
+- Jaccard similarity on normalized company names (strip legal suffixes: Inc, LLC, Corp, etc.), plus a location bonus when the name score is at least 0.5 (ZIP +0.25, city +0.15, state +0.10); a one-word name is capped at 0.5 unless the ZIP matches
+- A candidate is accepted in one of two cases: at least one Crunchbase founder surname appears in the filing's related persons and the name score is at least 0.5, or the name matches exactly and the city or ZIP matches (no founder overlap needed)
+- Among accepted candidates, the one with the most founder overlaps wins, then the highest name score
+- `seriesA_confidence` is MED when the name score is at least 0.5, LOW otherwise, and forced to LOW when the company is 6 or more years old at its Series A
 
 **Anti-leakage:**
-- Only pre-Series-A Form D filings used for investor/director counts
-- `formd_directors_preA`: count of directors listed in filings before Series A
-- `formd_investor_count_preA`: count of investors in filings before Series A
-- `formd_prior_rounds`: count of distinct funding events before the Series A filing
+- Two cutoffs, set in `02__clean__core_features.py`. Directors and investors use filings up to 90 days after the Series A date, so the Series A filing itself counts: it is filed shortly after the round closes and is public at prediction time. Prior rounds use a strict cutoff (filings before the Series A date only).
+- `formd_directors_preA`: distinct directors listed across those filings, Series A filing included
+- `formd_investor_count_preA`: highest investor count reported on those filings, Series A filing included
+- `formd_prior_rounds`: count of Form D filings strictly before the Series A date
 
 **Output columns:**
 - `seriesA_date`, `seriesA_quarter`, `seriesA_amount_usd`, `seriesA_security_type`
